@@ -1,0 +1,12 @@
+pyarrow
+pyspark
+jupyterlab-rise
+requests
+certifi
+confluent-kafka[avro,json,protobuf]>=1.4.2
+streamlit 
+psycopg2-binary
+faust-streaming==0.11.3
+faust-streaming-rocksdb
+jupysql
+grpcio
