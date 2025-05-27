@@ -10,3 +10,4 @@ faust-streaming==0.11.3
 faust-streaming-rocksdb
 jupysql
 grpcio
+pyspark==3.4.4

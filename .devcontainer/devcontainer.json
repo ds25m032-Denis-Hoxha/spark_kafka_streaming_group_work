@@ -1,7 +1,11 @@
 {
-	"image": "mcr.microsoft.com/devcontainers/universal:2",
+	"image": "mcr.microsoft.com/devcontainers/python:3.11",
 	"features": {
-		"ghcr.io/devcontainers-contrib/features/spark-sdkman:2": {}
+		"ghcr.io/devcontainers-extra/features/spark-sdkman:2": {
+			"version": "latest",
+			"jdkVersion": "latest",
+			"jdkDistro": "ms"
+		}
 	},
 	"updateContentCommand": "python3 -m pip install -r requirements.txt",
 	"customizations": {
