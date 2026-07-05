@@ -19,6 +19,10 @@ PASSWORD = "reRZ2pjg1WxqlwjU"
 CONFIG_FILE = Path(__file__).with_name("kafka.config")
 TOPIC_NAME = "springer_hoxha_music_events"
 
+# Shared file the Spark job writes recommendations to.
+# Must live in the same directory as spark_streaming_recommender.py.
+RECOMMENDATIONS_FILE = Path(__file__).with_name("recommendations.json")
+
 
 @st.cache_resource
 def get_connection():
@@ -83,6 +87,23 @@ def get_random_track(conn):
         "track_length_ms": row[4],
         "unit_price": float(row[5]) if row[5] is not None else None,
     }
+
+
+def get_recommendation(user_id):
+    """Read the latest recommendation the Spark job wrote for this user
+    from the shared JSON file."""
+    if not RECOMMENDATIONS_FILE.exists():
+        return None
+
+    try:
+        with open(RECOMMENDATIONS_FILE, "r") as f:
+            all_recs = json.load(f)
+    except (json.JSONDecodeError, OSError):
+        # File may be mid-write (rare, since writes are atomic) or missing;
+        # just skip this render, it'll show up on the next rerun.
+        return None
+
+    return all_recs.get(user_id)
 
 
 def create_event(user_id, track, action_type):
@@ -168,6 +189,25 @@ def main():
 
     else:
         st.error("No track found in the database.")
+
+    st.divider()
+    st.subheader("🎧 Your Recommendation")
+
+    recommendation = get_recommendation(user_id)
+    if recommendation:
+        price = recommendation.get("unit_price")
+        price_str = f"${price:.2f}" if price is not None else "N/A"
+        st.success(
+            f"**{recommendation['track_name']}** by {recommendation['artist_name']}  \n"
+            f"Album: {recommendation['album_title']} · Price: {price_str}"
+        )
+        st.caption(f"Generated at {recommendation['generated_at']}")
+    else:
+        st.info(
+            "Keep interacting (10+ Play/Like/Dislike/Skip actions) to unlock "
+            "a personalized recommendation. Make sure the Spark streaming "
+            "job is running."
+        )
 
 
 if __name__ == "__main__":
